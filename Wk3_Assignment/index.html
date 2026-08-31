@@ -1,0 +1,92 @@
+<!-- DM3014 Interactive Devices, Ashley Hi 2026
+  -- Week 3 - Net Art
+  -- Assignment Example
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Sculpture As 100 Hyperlinks</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+</head>
+<body>
+<script>
+  // ------------------------------------------------------------------
+  // EDIT ME
+  // One object per hyperlink on the page:
+  //   x, y   -> where it sits on the page, in pixel coordinates
+  //   label  -> the clickable text
+  //   url    -> where it links to
+  //   w, h   -> (optional) popup window size for this link only.
+  //             leave them out and it uses defaultWidth/defaultHeight below
+  //
+  // To add a link: copy any line, change the values, add a comma.
+  // To remove a link: delete its line.
+ 
+  let links = [
+  { x: 480, y: 110, label: "(sic)", url: "https://music.youtube.com/watch?v=gwJYDy52D2U&si=c2fB1cSXyUUvrRSd" },
+  { x: 460, y: 140, label: "La Perla", url: "https://music.youtube.com/watch?v=w7pjt9ZH3NM&si=i4a0keGMOwZifb_u" },
+  { x: 430, y: 170, label: "The Devil in I", url: "https://music.youtube.com/watch?v=Ub_NI1lCrdA&si=c98RLmBeoDwtmqUJ" },
+  { x: 386, y:200, label: "Insanely Illegal Cage Fight", url: "https://music.youtube.com/watch?v=yjg22LT4AzI&si=s177kO_j0ht6LAgA" },
+  { x: 400, y:230, label: "Backstabber", url: "https://music.youtube.com/watch?v=FboGFMGaFiw&si=_smygEPnx8pXHt4D" },
+  { x: 385, y:260, label: "Sarcasm", url: "https://music.youtube.com/watch?v=p0kijKmK1A0&si=y_DbBSkfwt-hMSwx" },
+  { x: 380, y:290, label: "Control", url: "https://music.youtube.com/watch?v=RQUnrRa9V8o&si=eo5UIG-bRwAfThqM" }, 
+  { x: 365, y:320, label: "Bad Guy", url: "https://music.youtube.com/watch?v=VDH0A0tBDGg&si=-e-RL6oBppc0eAiE" },
+  { x: 350, y:350, label: "Brutus", url: "https://music.youtube.com/watch?v=HjvgwtSRQeQ&si=I24-J_B8aJ-Jtswt" },
+  { x: 340, y:380, label: "Shiny", url: "https://music.youtube.com/watch?v=ogdAZXh5sz0&si=wSYFsxrEp1TVGKCa" },
+
+  { x: 683, y:110, label: "Toes", url: "https://music.youtube.com/watch?v=-bQhQ59TTtM&si=a2vye-5QtW94CcOT" },
+  { x: 670, y:140, label: "HURT", url: "https://music.youtube.com/watch?v=KlJXFhEixDc&si=lHUznvGu9NyQ789m" },
+  { x: 660, y: 170, label: "Get Jinxed", url: "https://music.youtube.com/watch?v=dFwFm8e49Vs&si=L75tZ7zpuV3jKY0B" },
+  { x: 630, y: 200, label: "ZITTI E BUONI", url: "https://music.youtube.com/watch?v=16GpicX09gk&si=CyS37v2nNeYrLZup" },
+  { x: 590, y:230, label: "I WANNA BE YOUR SLAVE", url: "https://music.youtube.com/watch?v=0T-BCIFeqq8&si=tkqc6HnzdDxWGDP0" },
+  { x: 590, y:260, label: "Wolf in Sheep's Clothing", url: "https://music.youtube.com/watch?v=VM6bPbOnK9w&si=AcNg9yT-4R_Nux1h" },
+  { x: 580, y:290, label: "Big Bad Wolf", url: "https://music.youtube.com/watch?v=5r2jZWqnQLo&si=AyXjV14ty84tPSpI" },
+  { x: 575, y:320, label: "Bad Blood", url: "" }, 
+  { x: 560, y:350, label: "Bite Marks", url: "https:https://music.youtube.com/watch?v=RQLuX41z56w&si=pGSxy-58fE33LegE//music.youtube.com/watch?v=I2gX4SAB04U&si=fga3C457v4BKO-He" },
+  { x: 558, y:380, label: "Calvaire", url: "https://music.youtube.com/watch?v=XG8VuUH3pn8&si=DfAvX6F6PfzKTzSh" },
+  { x: 550, y:410, label: "Babayka", url: "https://music.youtube.com/watch?v=zal7zN4BGvg&si=HItaHyMR7j6EXKz9" },
+  { x: 535  , y:440, label: "Animals", url: "https://music.youtube.com/watch?v=5DF9aRuiOZo&si=cTIloHigKu65r169" },
+
+  { x: 870, y: 140, label: "Custer", url: "https://music.youtube.com/watch?v=3pdVtlBYtrc&si=64ORBHfWZUIPLr_d" },
+  { x: 820, y: 170, label: "Sprawling Idiot Effigy", url: "https://music.youtube.com/watch?v=6pJvNJpPZRM&si=G_ZIenjU3A-_w0_S" },
+  { x: 800, y: 200, label: "The Lion and the Wolf", url: "https://music.youtube.com/watch?v=HXzsLqeQCY4&si=kEr6PmTMZ-Yb3Aks" },
+  { x: 810, y:230, label: "Shoots and Ladders", url: "https://music.youtube.com/watch?v=R9oByV6HDa8&si=eJ12OyvkEN1Ydn6H" },
+  { x: 795, y:260, label: "La Paz Mundial", url: "https://music.youtube.com/watch?v=inef-lTkk08&si=2lY6jt5d0X7Aqm9h" },
+  { x: 778, y:290, label: "The Prowler", url: "https://music.youtube.com/watch?v=unZRzMw48uE&si=AhRZYszfJQ80OTgv" },
+  { x: 768, y:320, label: "The Wolf", url: "https://music.youtube.com/watch?v=bFlZVGGiI7Y&si=FLfE4e-2vxxUTvi2" }, 
+  { x: 755, y:350, label: "Dragula", url: "https://music.youtube.com/watch?v=SOctyXxCm-4&si=6CkZOqA7AGQJ-WJS" },
+
+
+  ];
+  // ------------------------------------------------------------------
+  
+  // popup size used for any link that doesn't set its own w/h
+  let defaultWidth = 500;
+  let defaultHeight = 600;
+
+  function setup() {
+    noCanvas(); // this page only places links, so we don't need a canvas
+    for (let i = 0; i < links.length; i++) {
+      let link = links[i];
+      let a = createA('javascript:void(0)', link.label);
+      a.position(link.x, link.y);
+      a.mousePressed(() => openPopup(link));
+    }
+  }
+
+  // opens a link in its own small popup window
+  function openPopup(link) {
+    let w = link.w || defaultWidth;
+    let h = link.h || defaultHeight;
+    window.open(
+      link.url,
+      '_blank',
+      `width=${w},height=${h},left=100,top=50,resizable=yes,scrollbars=yes`
+    );
+  }
+
+</script>
+</body>
+</html>
