@@ -1,0 +1,14 @@
+{
+  "name": "2_handoff_windows",
+  "version": "1.0.0",
+  "description": "Phone browser as remote, laptop browser as play environment.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5",
+    "selfsigned": "^2.4.1"
+  }
+}

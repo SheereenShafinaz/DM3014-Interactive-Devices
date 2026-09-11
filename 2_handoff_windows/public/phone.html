@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>Play environment — remote</title>
+  <style>
+    html, body { margin: 0; overflow: hidden; background: #111; touch-action: none; }
+    #permission-btn {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      padding: 16px 24px; font-size: 16px; border-radius: 8px; border: none;
+      background: #f05a3c; color: white; z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <button id="permission-btn">tap to start remote</button>
+  <script src="/lib/p5.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="phone.js"></script>
+</body>
+</html>
