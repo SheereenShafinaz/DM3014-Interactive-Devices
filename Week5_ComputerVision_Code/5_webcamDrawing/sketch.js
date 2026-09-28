@@ -109,15 +109,10 @@ var Grid = function (_w, _h) {
   this.arrayLength = this.numOfNotesX * this.numOfNotesY;
   this.noteStates = [];
   this.noteStates = new Array(this.arrayLength).fill(0);
-  this.colorArray = [];
+  this.colorStart = color(100, 200, 50, 150); // *** colour when a point first appears
+  this.colorEnd = color(255, 50, 150, 150); // *** colour as a point fades out
   console.log(this);
   console.log(_w, _h);
-
-  for (var i = 0; i < this.arrayLength; i++) {
-    this.colorArray.push(
-      color(100, 200, 50, 150) // *** set colours of the points
-    );
-  }
 
   this.update = function (_img) {
     this.diffImg = _img;
@@ -157,7 +152,12 @@ var Grid = function (_w, _h) {
         var noteIndex = x + y * this.numOfNotesX;
 
         if (this.noteStates[noteIndex] > 0) {
-          fill(this.colorArray[noteIndex]);
+          var dynamicColor = lerpColor(
+            this.colorStart,
+            this.colorEnd,
+            1 - this.noteStates[noteIndex]
+          );
+          fill(dynamicColor);
           //ellipse(posX, posY, camera.width / 20, camera.height / 20); // *** change shape of point
           rect(posX - camera.width / 40,posY - camera.height / 40,camera.width / 20,camera.height / 20);
         }
