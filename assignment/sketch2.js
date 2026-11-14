@@ -4,14 +4,11 @@ const modelURL = "https://teachablemachine.withgoogle.com/models/BTMOpeY9F/";
 
 let video;
 let label = "";
+let sound, amp, delay, cnv; //for music p5.SoundFile 
 
-// game panel size
-let GAME_W = 640;
-let GAME_H = 520;
-
-// menu panel size
-let PANEL_X = 640;
-let PANEL_W = 260;
+// canvas size
+let WIDTH = 1920;
+let HEIGHT = 1080;
 
 // game variables
 let gameState = "waiting"; // waiting, countdown, playing, gameover
@@ -25,24 +22,34 @@ let punchTime = 0;
 let punchSide = ""; // "left" or "right"
 let punchPhase = "idle"; // idle, signal, punch
 let nextPunchAt = 0;
+let punchDuration = 500; // punch stays on screen for 0.5 second
 
-// images
-let idleImg, leftSignalImg, leftPunchImg, rightSignalImg, rightPunchImg;
+// images & music
+let idleGif,idleImg,idleHands, leftSignalImg, leftPunchImg, rightSignalImg, rightPunchImg;
+let bgmusic, signalSound, punchSound, gameoverSound;
 
 // timers
 let gameStartTime = 0;
 let countdownStart = 0; //to calculate countdown time ()
 
 function preload() {
-  idleImg = loadImage("images/idle.png");
-  leftSignalImg = loadImage("images/leftsignal.png");
-  leftPunchImg = loadImage("images/leftpunch.png");
-  rightSignalImg = loadImage("images/rightsignal.png");
-  rightPunchImg = loadImage("images/rightpunch.png");
+  idleGif = loadImage("images/idle_animation.gif");
+  idleImg = loadImage("images/idle_image.png");
+  idleHands = loadImage("images/hands_idle.png");
+  leftSignalImg = loadImage("images/left_signal.png");
+  leftPunchImg = loadImage("images/left_punch.png");
+  rightSignalImg = loadImage("images/right_signal.png");
+  rightPunchImg = loadImage("images/right_punch.png");
+  UI = loadImage("images/UI.png");
+
+  bgmusic = loadSound('sounds/bgmusic.mp3');
+  signalSound = loadSound('sounds/signal.mp3')
+  punchSound = loadSound('sounds/punch.mp3')
+  gameoverSound = loadSound('sounds/gameover.mp3')
 }
 
 async function setup() {
-  createCanvas(GAME_W + PANEL_W, GAME_H);
+  createCanvas(WIDTH, HEIGHT);
   video = createCapture(VIDEO,{flipped: true });
   video.size(320, 240);
   video.hide();
@@ -55,16 +62,15 @@ function draw() {
 
   // ---------- WAITING SCREEN ----------
   if (gameState === "waiting") {
-    background(30);
-    image(video, width / 2 - 160, 340, 320, 240);
-    fill(255);
-    textSize(14);
-    text("Current tilt: " + label, width / 2, 330);
+    image(idleImg, 0, 0, WIDTH, HEIGHT);
+    background(0, 0, 0, 200); //transparent overlay on top of idle image
   }
 
   // ---------- STARTING COUNTDOWN ----------
   else if (gameState === "countdown") {
-    background(30);
+    image(idleImg, 0, 0, WIDTH, HEIGHT);
+    background(0, 0, 0, 200);
+    
     let elapsed = (millis() - countdownStart) / 1000;
     let remaining = 3 - floor(elapsed);
 
@@ -72,7 +78,7 @@ function draw() {
       fill(255);
       textSize(80);
       textAlign(CENTER);
-      text(remaining, GAME_W / 2, GAME_H / 2);
+      text(remaining, WIDTH / 2, HEIGHT / 2);
     } else {
       // countdown done, start the game
       gameState = "playing";
@@ -84,29 +90,35 @@ function draw() {
 
   // ---------- PLAYING ----------
   else if (gameState === "playing") {
+    if (!bgmusic.isPlaying()) {
+      bgmusic.loop(); // loop bg music, and check if bgmusic isnt already playing
+    }
+    image(idleGif, 0, 0, WIDTH, HEIGHT);
     score = (millis() - gameStartTime) / 1000; //update score
   
 
     // punch phases pictures
     if (punchPhase === "idle") {
-      image(idleImg, 0, 0, GAME_W, GAME_H);
+      image(idleHands, 0, 0, WIDTH, HEIGHT);
     } else if (punchPhase === "signal") {
       if (punchSide === "left") {
-        image(leftSignalImg, 0, 0, GAME_W, GAME_H);
+        image(idleHands, 0, 0, WIDTH, HEIGHT);
+        image(leftSignalImg, 0, 0, WIDTH, HEIGHT);
       } else {
-        image(rightSignalImg, 0, 0, GAME_W, GAME_H);
+        image(idleHands, 0, 0, WIDTH, HEIGHT);
+        image(rightSignalImg, 0, 0, WIDTH, HEIGHT);
       }
     } else if (punchPhase === "punch") {
       if (punchSide === "left") {
-        image(leftPunchImg, 0, 0, GAME_W, GAME_H);
+        image(leftPunchImg, 0, 0, WIDTH, HEIGHT);
       } else {
-        image(rightPunchImg, 0, 0, GAME_W, GAME_H);
+        image(rightPunchImg, 0, 0, WIDTH, HEIGHT);
       }
     }
 
     // ---------- PUNCH LOGIC ----------
     if (punchPhase === "idle") {
-      if (millis() >= nextPunchAt) { //start the punch if current time is greater than or equal to nextPunchAt)
+      if (millis() >= nextPunchAt) { //start the punch if current time is greater than or equal to nextPunchAt
         if (random(1) < 0.5) {         // random pick left or right
           punchSide = "left";
         } else {
@@ -125,28 +137,30 @@ function draw() {
     }
 
     else if (punchPhase === "punch") {
-      // user has a tiny window to be dodging
-      let dodged = false;
-      if (punchSide === "left") { // left punch comes from the left -> dodge right (note uuuh myy uuh tilt direction is mirrored)
-        if (label === "Right Tilt") {
-          dodged = true;
-        }
+      if (millis() - punchTime < punchDuration) {
       } else {
-        // right punch -> dodge left
-        if (label === "Left Tilt") {
-          dodged = true;
+        let dodged = false;
+        if (punchSide === "left") { // left punch comes from the left -> dodge right (note uuuh myy uuh tilt direction is mirrored)
+          if (label === "Right Tilt") {
+            dodged = true;
+          }
+        } else {
+          // right punch -> dodge left
+          if (label === "Left Tilt") {
+            dodged = true;
+          }
         }
-      }
 
-      if (!dodged) {
-        gameState = "gameover"; //if dont dodge, update highscore and change to gameover state
-        if (score > highScore) {
-          highScore = score;
+        if (!dodged) {
+          gameState = "gameover"; //if dont dodge, update highscore and change to gameover state
+          if (score > highScore) {
+            highScore = score;
+          }
+        } else {
+          // dodged successfully
+          punchPhase = "idle";
+          nextPunchAt = millis() + random(700, 2000); // wait a random amount before next punch (0.7 - 2 seconds)
         }
-      } else {
-        // dodged successfully
-        punchPhase = "idle";
-        nextPunchAt = millis() + random(800, 2000); // wait a random amount before next punch (0.8 - 2 seconds)
       }
     }
 
@@ -154,25 +168,20 @@ function draw() {
     fill(255);
     textSize(20);
     textAlign(LEFT);
-    text("Time: " + nf(score, 1, 1) + "s", 20, 30);
-
-    tint(255, 50); //make image transparent
-    image(video, GAME_W/2-350/2, GAME_H/2-250/2, 350, 250);
-    fill(255);
-
-    noTint();
-    textSize(12);
-    textAlign(CENTER);
-    text(label, GAME_W/2, GAME_H - 100);
+    text("Time: " + nf(score, 1, 1) + "s", WIDTH/2, 1060);
   }
 
   // ---------- GAME OVER SCREEN ----------
   else if (gameState === "gameover") {
+    if (!bgmusic.isPlaying()) {
+      bgmusic.stop(); // stop bg music
+    }
+    gameoverSound.play();
 
     if (punchSide === "left") { //show last punch image
-      image(leftPunchImg, 0, 0, GAME_W, GAME_H);
+      image(leftPunchImg, 0, 0, WIDTH, HEIGHT);
     } else {
-      image(rightPunchImg, 0, 0, GAME_W, GAME_H);
+      image(rightPunchImg, 0, 0, WIDTH, HEIGHT);
     }
 
     background(0, 0, 0, 180); //overlay gameover screen on top
@@ -180,59 +189,37 @@ function draw() {
     fill(255);
     textAlign(CENTER);
     textSize(50);
-    text("GAME OVER", GAME_W/2, 120);
+    text("GAME OVER", WIDTH/2, 120);
     textSize(28);
-    text("You survived " + nf(score, 1, 1) + " seconds", GAME_W / 2, 200);
-    text("High Score: " + nf(highScore, 1, 1) + "s", GAME_W / 2, 250);
+    text("You survived " + nf(score, 1, 1) + " seconds", WIDTH / 2, 200);
+    text("High Score: " + nf(highScore, 1, 1) + "s", WIDTH / 2, 250);
     textSize(22);
-    text("Press SPACE to retry", GAME_W / 2, 350);
+    text("Press SPACE to retry", WIDTH / 2, 350);
 
   }
 
-  // ---------- SIDE PANEL ----------
-  drawPanel();
+  // ---------- UI ----------
+  drawUI();
+  
 }
 
-// function to draw side MENU panel
+// function to draw UI ontop of everything
 
-function drawPanel() {
-  fill(87, 104, 185);
-  rect(PANEL_X, 0, PANEL_W, GAME_H);
-
-  // TITLE
-  fill(255);
-  textSize(32);
-  textAlign(CENTER);
-  text("DODGE OUT!", PANEL_X + PANEL_W / 2, 50);
-
-  // HIGH SCORE
+function drawUI() {
+  image(video, 30, 531, 442, 425); //camera below ui
+  image(UI, 0, 0, WIDTH, HEIGHT); //phone UI
   textSize(20);
-  textAlign(LEFT);
-  text("High Score: " + nf(highScore, 1, 1) + "s", PANEL_X + 20, 100);
-
-  // instructions
-  fill(255);
-  textSize(16);
-  textAlign(LEFT);
-  let tx = PANEL_X + 20;
-  text("HOW TO PLAY", tx, 240);
-
-  fill(255);
-  textSize(13);
-  textAlign(LEFT);
-  text("Sit in front of the camera", tx, 270);
-  text("Lean LEFT or RIGHT to dodge", tx, 290);
-  text("the incoming punch in time", tx, 310);
-  text("Dodge for as long as you can", tx, 330);
-
   textAlign(CENTER);
-  fill(255);
-  textSize(14);
-  if (gameState === "waiting") {
-    text("Press SPACE to start", PANEL_X + PANEL_W / 2, 430);
-  } else if (gameState === "gameover") {
-    text("Press SPACE to retry", PANEL_X + PANEL_W / 2, 430);
-  }
+  fill("white");
+  textStyle(BOLD);
+  text("Current tilt: " + label, 225, 560); //tilt label for camera
+
+  // high score message
+  textSize(40);
+  fill("white");
+  textStyle(BOLD);
+  textAlign(CENTER);
+  text(nf(highScore, 1, 1) + "s", 1705, 777);
 }
 
 
