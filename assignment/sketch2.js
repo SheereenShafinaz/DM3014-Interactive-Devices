@@ -4,7 +4,6 @@ const modelURL = "https://teachablemachine.withgoogle.com/models/BTMOpeY9F/";
 
 let video;
 let label = "";
-let sound, amp, delay, cnv; //for music p5.SoundFile 
 
 // canvas size
 let WIDTH = 1920;
@@ -24,9 +23,8 @@ let punchPhase = "idle"; // idle, signal, punch
 let nextPunchAt = 0;
 let punchDuration = 500; // punch stays on screen for 0.5 second
 
-// images & music
+// images
 let idleGif,idleImg,idleHands, leftSignalImg, leftPunchImg, rightSignalImg, rightPunchImg;
-let bgmusic, signalSound, punchSound, gameoverSound;
 
 // timers
 let gameStartTime = 0;
@@ -42,10 +40,6 @@ function preload() {
   rightPunchImg = loadImage("images/right_punch.png");
   UI = loadImage("images/UI.png");
 
-  bgmusic = loadSound('sounds/bgmusic.mp3');
-  signalSound = loadSound('sounds/signal.mp3')
-  punchSound = loadSound('sounds/punch.mp3')
-  gameoverSound = loadSound('sounds/gameover.mp3')
 }
 
 async function setup() {
@@ -90,9 +84,6 @@ function draw() {
 
   // ---------- PLAYING ----------
   else if (gameState === "playing") {
-    if (!bgmusic.isPlaying()) {
-      bgmusic.loop(); // loop bg music, and check if bgmusic isnt already playing
-    }
     image(idleGif, 0, 0, WIDTH, HEIGHT);
     score = (millis() - gameStartTime) / 1000; //update score
   
@@ -173,11 +164,6 @@ function draw() {
 
   // ---------- GAME OVER SCREEN ----------
   else if (gameState === "gameover") {
-    if (!bgmusic.isPlaying()) {
-      bgmusic.stop(); // stop bg music
-    }
-    gameoverSound.play();
-
     if (punchSide === "left") { //show last punch image
       image(leftPunchImg, 0, 0, WIDTH, HEIGHT);
     } else {
