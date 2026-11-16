@@ -23,12 +23,13 @@ let punchPhase = "idle"; // idle, signal, punch
 let nextPunchAt = 0;
 let punchDuration = 500; // punch stays on screen for 0.5 second
 
-// images
+// images & sounds
 let idleGif,idleImg,idleHands, leftSignalImg, leftPunchImg, rightSignalImg, rightPunchImg;
+let bgMusic, gameoverSound, punchSound, signalSound;
 
 // timers
 let gameStartTime = 0;
-let countdownStart = 0; //to calculate countdown time ()
+let countdownStart = 0; //to calculate countdown time
 
 function preload() {
   idleGif = loadImage("images/idle_animation.gif");
@@ -39,6 +40,10 @@ function preload() {
   rightSignalImg = loadImage("images/right_signal.png");
   rightPunchImg = loadImage("images/right_punch.png");
   UI = loadImage("images/UI.png");
+  bgMusic = loadSound("sounds/maintheme.mp3");
+  gameoverSound = loadSound("sounds/gameover.mp3");
+  punchSound = loadSound("sounds/punchsound.mp3");
+  signalSound = loadSound("sounds/signalsound.mp3");
 
 }
 
@@ -79,6 +84,7 @@ function draw() {
       gameStartTime = millis();
       nextPunchAt = millis() + 2000; // set the time for thefirst punch (after 2 seconds)
       punchPhase = "idle"; //start punchPhase as idle for next part
+      bgMusic.loop();
     }
   }
 
@@ -117,6 +123,7 @@ function draw() {
         }
         punchPhase = "signal"; //change phase to signal and start the reaction timer
         punchTime = millis();
+        signalSound.play();
       }
     }
 
@@ -124,6 +131,7 @@ function draw() {
       if (millis() - punchTime >= 1000) { //if 1s has passed since signal, throw punch
         punchPhase = "punch";
         punchTime = millis();
+        punchSound.play();
       }
     }
 
@@ -144,6 +152,8 @@ function draw() {
 
         if (!dodged) {
           gameState = "gameover"; //if dont dodge, update highscore and change to gameover state
+          bgMusic.stop();//stop music if game over
+          gameoverSound.play();
           if (score > highScore) {
             highScore = score;
           }
@@ -217,6 +227,7 @@ function keyPressed() {
       countdownStart = millis(); //where countdownStart is recorded to track countdown time
     } else if (gameState === "gameover") {
       // reset the game
+      gameoverSound.stop();
       score = 0;
       punchPhase = "idle";
       punchSide = "";
